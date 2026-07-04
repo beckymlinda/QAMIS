@@ -7,11 +7,13 @@ use App\Models\Institution;
 use App\Models\ReportTemplate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpWord\IOFactory;
-use PhpOffice\PhpWord\PhpWord;
 
 class AnnualReportGenerator
 {
+    public function __construct(
+        protected HtmlReportDocxExporter $docxExporter,
+    ) {}
+
     public function generate(Institution $institution, int $year = null): GeneratedReport
     {
         $year = $year ?? (int) date('Y');
@@ -47,14 +49,8 @@ class AnnualReportGenerator
         Storage::disk('local')->put($pdfPath, Pdf::loadHTML($html)->output());
         $report->file_pdf_path = $pdfPath;
 
-        $phpWord = new PhpWord;
-        $section = $phpWord->addSection();
-        $section->addTitle('Annual Report / Institutional Audit', 1);
-        $section->addText($institution->name);
-        $section->addText('Year: '.$year);
-        $path = "reports/annual-{$institution->id}-{$year}-".time().'.docx';
-        IOFactory::createWriter($phpWord, 'Word2007')->save(Storage::disk('local')->path($path));
-        $report->file_docx_path = $path;
+        $docxPath = "reports/annual-{$institution->id}-{$year}-".time().'.docx';
+        $report->file_docx_path = $this->docxExporter->store($html, $docxPath);
         $report->save();
 
         return $report;

@@ -10,7 +10,7 @@ use App\Models\StandardVersion;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 
-class QamisSeeder extends Seeder
+class HeqamisSeeder extends Seeder
 {
     public function run(): void
     {
@@ -96,7 +96,7 @@ class QamisSeeder extends Seeder
             ]
         );
 
-        Artisan::call('qamis:import-tools');
+        Artisan::call('heqamis:import-tools');
         $this->command?->info(Artisan::output());
     }
 }

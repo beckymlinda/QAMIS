@@ -14,6 +14,8 @@ class InstitutionProfile extends Model
     protected $fillable = [
         'institution_id', 'vision', 'mission', 'core_values',
         'strategic_plan_summary', 'background_narrative', 'swot_analysis',
+        'executive_summary', 'abbreviations_acronyms', 'introduction_approach',
+        'assessment_team_composition', 'core_function', 'policies_procedures_summary',
     ];
 
     protected function casts(): array

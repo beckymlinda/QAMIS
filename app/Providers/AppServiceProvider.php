@@ -11,6 +11,7 @@ use App\Models\GeneratedReport;
 use App\Models\Institution;
 use App\Models\OrgUnit;
 use App\Models\Programme;
+use App\Models\Student;
 use App\Policies\AssessmentPolicy;
 use App\Policies\CorrectiveActionPolicy;
 use App\Policies\DashboardPolicy;
@@ -20,7 +21,9 @@ use App\Policies\InstitutionPolicy;
 use App\Policies\OrgUnitPolicy;
 use App\Policies\ProgrammePolicy;
 use App\Policies\ReportPolicy;
+use App\Policies\StudentPolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,8 +35,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Schema::defaultStringLength(191);
+
         Gate::policy(Institution::class, InstitutionPolicy::class);
         Gate::policy(Programme::class, ProgrammePolicy::class);
+        Gate::policy(Student::class, StudentPolicy::class);
         Gate::policy(OrgUnit::class, OrgUnitPolicy::class);
         Gate::policy(Assessment::class, AssessmentPolicy::class);
         Gate::policy(EvidenceDocument::class, EvidencePolicy::class);

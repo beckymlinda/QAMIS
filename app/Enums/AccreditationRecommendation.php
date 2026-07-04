@@ -12,10 +12,10 @@ enum AccreditationRecommendation: string
     public function label(): string
     {
         return match ($this) {
-            self::Ready => 'Ready for Accreditation',
-            self::WithConditions => 'Accreditation with Conditions',
-            self::Deferred => 'Deferred Pending Improvements',
-            self::NotReady => 'Not Ready for Accreditation',
+            self::Ready => 'Standards Fully Met',
+            self::WithConditions => 'Standards Partially Met',
+            self::Deferred => 'Improvement Plan Required',
+            self::NotReady => 'Significant Gaps Identified',
         };
     }
 }

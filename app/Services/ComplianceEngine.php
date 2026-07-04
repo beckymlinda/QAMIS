@@ -27,11 +27,15 @@ class ComplianceEngine
         $sectionAggregates = [];
 
         foreach ($assessment->template->sections as $section) {
-            $criteria = $section->criteria->whereNull('parent_criterion_id');
             $responses = $this->responsesForSection($assessment, $section);
-            $totalScore = $responses->sum(fn ($r) => $r->score ?? 0);
-            $divisor = max($section->divisor, 1);
-            $aggregate = round($totalScore / $divisor, 2);
+            $scoredResponses = $responses->filter(fn ($r) => $r->score !== null);
+
+            $totalScore = $scoredResponses->sum(fn ($r) => (float) $r->score * (float) ($r->criterion->weight ?? 1));
+            $sectionDivisor = max(1, (int) $section->divisor);
+
+            $aggregate = $scoredResponses->isNotEmpty()
+                ? round($totalScore / $sectionDivisor, 2)
+                : null;
 
             foreach ($responses as $response) {
                 $criterion = $response->criterion;
@@ -51,13 +55,15 @@ class ComplianceEngine
                     'assessment_section_id' => $section->id,
                 ],
                 [
-                    'total_score' => $totalScore,
-                    'aggregate_score' => $aggregate,
-                    'divisor' => $divisor,
+                    'total_score' => (int) round($totalScore),
+                    'aggregate_score' => $aggregate ?? 0,
+                    'divisor' => $sectionDivisor,
                 ]
             );
 
-            $sectionAggregates[] = $aggregate;
+            if ($aggregate !== null) {
+                $sectionAggregates[] = $aggregate;
+            }
         }
 
         $overallAverage = count($sectionAggregates)

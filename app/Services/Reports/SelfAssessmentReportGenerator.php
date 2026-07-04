@@ -6,13 +6,18 @@ use App\Models\Assessment;
 use App\Models\GeneratedReport;
 use App\Models\Institution;
 use App\Models\ReportTemplate;
+use App\Services\AssessmentStrengthsAnalysis;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
-use PhpOffice\PhpWord\IOFactory;
-use PhpOffice\PhpWord\PhpWord;
 
 class SelfAssessmentReportGenerator
 {
+    public function __construct(
+        protected AssessmentStrengthsAnalysis $strengthsAnalysis,
+        protected SarAssessmentFormatter $sarFormatter,
+        protected HtmlReportDocxExporter $docxExporter,
+    ) {}
+
     public function generate(Institution $institution, ?Assessment $institutionalAssessment = null, int $year = null): GeneratedReport
     {
         $year = $year ?? (int) date('Y');
@@ -24,22 +29,52 @@ class SelfAssessmentReportGenerator
             ->latest()
             ->first();
 
+        $institution->load([
+            'profile',
+            'contact',
+            'governanceMembers',
+            'programmes',
+            'staffMembers.programme',
+            'studentEnrolments.programme',
+        ]);
+
         $programmeAssessments = Assessment::query()
             ->where('institution_id', $institution->id)
             ->where('assessment_type', 'programme')
-            ->with(['programme', 'complianceResult', 'sectionSummaries.section'])
-            ->get();
+            ->with(['programme', 'complianceResult', 'sectionSummaries.section', 'responses.criterion'])
+            ->get()
+            ->map(fn (Assessment $assessment) => $this->formatProgrammeAssessment($assessment, $institution))
+            ->values()
+            ->all();
 
-        $institution->load(['profile', 'contact', 'governanceMembers', 'programmes', 'staffMembers']);
+        $institutionalAssessment?->load([
+            'responses.criterion.section',
+            'responses.criterion.rubricLevels',
+            'complianceResult',
+            'sectionSummaries.section',
+        ]);
+
+        $institutionalFormatted = $institutionalAssessment
+            ? $this->sarFormatter->formatAssessment($institutionalAssessment, false)
+            : null;
+
+        if ($institutionalFormatted) {
+            $institutionalFormatted['strengths_improvement_rows'] = $this->sarFormatter->buildStrengthsImprovementRows($institutionalAssessment);
+        }
+
+        $summaryRows = $this->buildSummaryTableRows($institution, $institutionalFormatted, $programmeAssessments);
 
         $snapshot = [
             'year' => $year,
             'institution' => $institution->toArray(),
             'profile' => $institution->profile?->toArray(),
+            'contact' => $institution->contact?->toArray(),
             'governance' => $institution->governanceMembers->groupBy('body_type')->toArray(),
-            'institutional_assessment' => $institutionalAssessment?->load(['complianceResult', 'sectionSummaries.section'])?->toArray(),
-            'programme_assessments' => $programmeAssessments->toArray(),
-            'staff_by_programme' => $institution->staffMembers->groupBy('programme_id')->toArray(),
+            'staff_members' => $institution->staffMembers->load('programme')->toArray(),
+            'student_enrolments' => $institution->studentEnrolments->load('programme')->toArray(),
+            'institutional_assessment' => $institutionalFormatted,
+            'programme_assessments' => $programmeAssessments,
+            'summary_table_rows' => $summaryRows,
         ];
 
         $report = GeneratedReport::create([
@@ -57,39 +92,68 @@ class SelfAssessmentReportGenerator
         Storage::disk('local')->put($pdfPath, Pdf::loadHTML($html)->output());
         $report->file_pdf_path = $pdfPath;
 
-        $docxPath = $this->generateDocx($snapshot, $institution, $year);
-        $report->file_docx_path = $docxPath;
+        $docxPath = "reports/sar-{$institution->id}-{$year}-".time().'.docx';
+        $report->file_docx_path = $this->docxExporter->store($html, $docxPath);
         $report->save();
 
         return $report;
     }
 
-    protected function generateDocx(array $snapshot, Institution $institution, int $year): string
+    protected function formatProgrammeAssessment(Assessment $assessment, Institution $institution): array
     {
-        $phpWord = new PhpWord;
-        $section = $phpWord->addSection();
-        $section->addTitle('Self-Assessment Report', 1);
-        $section->addText($institution->name);
-        $section->addText('Reporting Year: '.$year);
-        $section->addTextBreak();
+        $formatted = $this->sarFormatter->formatAssessment($assessment, true);
+        $formatted['strengths_improvement_rows'] = $this->sarFormatter->buildStrengthsImprovementRows($assessment);
+        $formatted['staff'] = $institution->staffMembers
+            ->where('programme_id', $assessment->programme_id)
+            ->values()
+            ->toArray();
 
-        if ($profile = $snapshot['profile'] ?? null) {
-            $section->addTitle('Institutional Background', 2);
-            $section->addText('Vision: '.($profile['vision'] ?? 'N/A'));
-            $section->addText('Mission: '.($profile['mission'] ?? 'N/A'));
+        return $formatted;
+    }
+
+    protected function buildSummaryTableRows(Institution $institution, ?array $institutional, array $programmeAssessments): array
+    {
+        $rows = [];
+
+        if ($institutional) {
+            $rows[] = [
+                'name' => $institution->name,
+                'type' => 'institution',
+                'aggregate_score' => number_format($institutional['overall_average'], 2),
+                'observations' => $this->briefObservations($institutional),
+                'recommendation' => $institutional['overall_recommendation'],
+            ];
         }
 
-        if ($assessment = $snapshot['institutional_assessment'] ?? null) {
-            $section->addTitle('Institutional Assessment Scores', 2);
-            foreach ($assessment['section_summaries'] ?? [] as $summary) {
-                $section->addText(($summary['section']['title'] ?? 'Section').': '.($summary['aggregate_score'] ?? 'N/A'));
-            }
+        foreach ($programmeAssessments as $pa) {
+            $rows[] = [
+                'name' => $pa['programme']['name'] ?? $pa['title'],
+                'type' => 'programme',
+                'aggregate_score' => number_format($pa['overall_average'], 2),
+                'observations' => $this->briefObservations($pa),
+                'recommendation' => $pa['overall_recommendation'],
+            ];
         }
 
-        $path = "reports/sar-{$institution->id}-{$year}-".time().'.docx';
-        $fullPath = Storage::disk('local')->path($path);
-        IOFactory::createWriter($phpWord, 'Word2007')->save($fullPath);
+        return $rows;
+    }
 
-        return $path;
+    protected function briefObservations(array $assessmentData): string
+    {
+        $improvements = collect($assessmentData['strengths_improvement_rows'] ?? [])
+            ->flatMap(fn ($row) => $row['improvements'] ?? [])
+            ->take(3)
+            ->implode(' ');
+
+        if ($improvements !== '') {
+            return $improvements;
+        }
+
+        $strengths = collect($assessmentData['strengths_improvement_rows'] ?? [])
+            ->flatMap(fn ($row) => $row['strengths'] ?? [])
+            ->take(2)
+            ->implode(' ');
+
+        return $strengths ?: 'Assessment completed.';
     }
 }

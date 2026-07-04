@@ -21,4 +21,15 @@ class ProgrammePolicy
     {
         return $user->can('programme.manage');
     }
+
+    public function update(User $user, Programme $programme): bool
+    {
+        return $user->can('programme.manage')
+            && ($user->isNcheOrSystemAdmin() || $user->institution_id === $programme->institution_id);
+    }
+
+    public function delete(User $user, Programme $programme): bool
+    {
+        return $this->update($user, $programme);
+    }
 }

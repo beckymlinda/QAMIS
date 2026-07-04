@@ -10,13 +10,22 @@ use App\Models\GeneratedReport;
 use App\Models\GovernanceMember;
 use App\Models\Programme;
 use App\Models\StaffMember;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): View|RedirectResponse
     {
+        if (auth()->user()?->isStudent()) {
+            return redirect()->route('student.dashboard');
+        }
+
+        if (auth()->user()?->isLecturer()) {
+            return redirect()->route('lecturer.dashboard');
+        }
+
         $this->authorize('view', ComplianceDashboardCache::class);
 
         $institutionId = auth()->user()->institution_id ?? $request->session()->get('active_institution_id');

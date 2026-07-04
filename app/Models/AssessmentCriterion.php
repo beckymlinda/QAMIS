@@ -30,4 +30,10 @@ class AssessmentCriterion extends Model
     {
         return $this->hasMany(self::class, 'parent_criterion_id');
     }
+
+    public function rubricLevels(): HasMany
+    {
+        return $this->hasMany(AssessmentCriterionRubricLevel::class)
+            ->orderByDesc('score');
+    }
 }

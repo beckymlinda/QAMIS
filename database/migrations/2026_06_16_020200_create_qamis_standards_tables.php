@@ -65,7 +65,7 @@ return new class extends Migration
             $table->foreignId('parent_criterion_id')->nullable()->constrained('assessment_criteria')->nullOnDelete();
             $table->foreignId('standard_clause_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('sequence_no');
-            $table->string('title');
+            $table->text('title');
             $table->text('description')->nullable();
             $table->boolean('is_mandatory')->default(false);
             $table->unsignedTinyInteger('minimum_score')->default(3);

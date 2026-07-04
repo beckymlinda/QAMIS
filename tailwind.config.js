@@ -14,6 +14,14 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                heqamis: {
+                    blue: '#0f2744',
+                    'blue-light': '#1a3a5c',
+                    green: '#8cc63f',
+                    'green-dark': '#7ab833',
+                },
+            },
         },
     },
 

@@ -19,7 +19,8 @@ class RolePermissionSeeder extends Seeder
             'institution.manage', 'programme.manage', 'assessment.create', 'assessment.score',
             'assessment.review', 'assessment.approve', 'evidence.upload', 'report.generate',
             'report.view', 'standards.manage', 'corrective_action.manage', 'dashboard.view',
-            'user.manage', 'institution.create',
+            'user.manage', 'institution.create', 'student.portal', 'evaluation.view_reports',
+            'grade.manage', 'lms.manage', 'lms.view',
         ];
 
         foreach ($permissions as $permission) {
@@ -34,7 +35,7 @@ class RolePermissionSeeder extends Seeder
             ],
             'institution_admin' => [
                 'institution.manage', 'programme.manage', 'user.manage', 'dashboard.view',
-                'report.generate', 'report.view', 'assessment.create', 'evidence.upload',
+                'report.generate', 'report.view', 'assessment.create', 'assessment.score', 'evidence.upload',
             ],
             'qa_officer' => [
                 'assessment.create', 'assessment.score', 'assessment.review', 'report.generate',
@@ -46,6 +47,8 @@ class RolePermissionSeeder extends Seeder
             'executive_management' => ['dashboard.view', 'report.view'],
             'council_board' => ['report.view', 'dashboard.view'],
             'external_evaluator' => ['report.view', 'assessment.review'],
+            'student' => ['student.portal', 'lms.view'],
+            'lecturer' => ['dashboard.view', 'evaluation.view_reports', 'grade.manage', 'lms.manage'],
         ];
 
         foreach ($roles as $roleName => $rolePermissions) {
@@ -54,7 +57,7 @@ class RolePermissionSeeder extends Seeder
         }
 
         $systemAdmin = User::firstOrCreate(
-            ['email' => 'admin@qamis.mw'],
+            ['email' => 'admin@heqamis.mw'],
             [
                 'name' => 'System Administrator',
                 'password' => Hash::make('password'),
@@ -64,9 +67,9 @@ class RolePermissionSeeder extends Seeder
         $systemAdmin->assignRole('system_admin');
 
         $ncheAdmin = User::firstOrCreate(
-            ['email' => 'nche@qamis.mw'],
+            ['email' => 'nche@heqamis.mw'],
             [
-                'name' => 'NCHE Administrator',
+                'name' => 'Standards Administrator',
                 'password' => Hash::make('password'),
                 'is_active' => true,
             ]

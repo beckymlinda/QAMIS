@@ -25,7 +25,7 @@ enum AssessmentStatus: string
     {
         return match ($this) {
             self::Draft => $next === self::Submitted,
-            self::Submitted => in_array($next, [self::Reviewed, self::Draft], true),
+            self::Submitted => in_array($next, [self::Reviewed, self::Draft, self::Submitted], true),
             self::Reviewed => in_array($next, [self::Approved, self::Submitted], true),
             self::Approved => $next === self::Locked,
             self::Locked => false,

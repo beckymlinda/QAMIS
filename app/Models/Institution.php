@@ -56,6 +56,21 @@ class Institution extends Model
         return $this->hasMany(Programme::class);
     }
 
+    public function governanceMembers(): HasMany
+    {
+        return $this->hasMany(GovernanceMember::class);
+    }
+
+    public function staffMembers(): HasMany
+    {
+        return $this->hasMany(StaffMember::class);
+    }
+
+    public function studentEnrolments(): HasMany
+    {
+        return $this->hasMany(StudentEnrolment::class);
+    }
+
     public function assessments(): HasMany
     {
         return $this->hasMany(Assessment::class);

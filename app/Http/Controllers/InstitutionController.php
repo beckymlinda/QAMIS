@@ -4,17 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\Institution;
 use App\Support\InstitutionContext;
+use App\Support\InstitutionScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class InstitutionController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $this->authorize('viewAny', Institution::class);
 
-        $institutions = Institution::query()->orderBy('name')->paginate(15);
+        $user = $request->user();
+        if ($user->institution_id && ! $user->isNcheOrSystemAdmin()) {
+            return redirect()->route('institutions.show', $user->institution_id);
+        }
+
+        $institutions = InstitutionScope::apply(Institution::query())
+            ->orderBy('name')
+            ->paginate(15);
 
         return view('institutions.index', compact('institutions'));
     }

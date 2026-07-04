@@ -6,6 +6,7 @@ use App\Models\CorrectiveAction;
 use App\Models\EvidenceCategory;
 use App\Models\EvidenceDocument;
 use App\Models\EvidenceDocumentVersion;
+use App\Support\InstitutionScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +17,10 @@ class EvidenceController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', EvidenceDocument::class);
-        $documents = EvidenceDocument::with(['category', 'currentVersion'])->latest()->paginate(20);
+        $documents = InstitutionScope::apply(EvidenceDocument::query())
+            ->with(['category', 'currentVersion'])
+            ->latest()
+            ->paginate(20);
 
         return view('evidence.index', compact('documents'));
     }

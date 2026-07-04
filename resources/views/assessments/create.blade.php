@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800">New {{ ucfirst($type) }} Assessment</h2></x-slot>
+    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800">New {{ ucfirst($type) }} Self-Assessment</h2></x-slot>
     <div class="py-8 max-w-3xl mx-auto sm:px-6 lg:px-8">
         <form method="POST" action="{{ route('assessments.store') }}" class="bg-white p-6 rounded-lg shadow space-y-4">
             @csrf
@@ -20,7 +20,7 @@
                     </select>
                 </div>
             @endif
-            <div><label class="block text-sm font-medium">Title</label><input name="title" class="mt-1 w-full rounded-md border-gray-300" required value="{{ old('title', ucfirst($type).' Assessment '.date('Y')) }}"></div>
+            <div><label class="block text-sm font-medium">Title</label><input name="title" class="mt-1 w-full rounded-md border-gray-300" required value="{{ old('title', ucfirst($type).' Self-Assessment '.date('Y')) }}"></div>
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-sm font-medium">Period Start</label><input type="date" name="period_start" class="mt-1 w-full rounded-md border-gray-300"></div>
                 <div><label class="block text-sm font-medium">Period End</label><input type="date" name="period_end" class="mt-1 w-full rounded-md border-gray-300"></div>

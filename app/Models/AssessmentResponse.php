@@ -19,6 +19,7 @@ class AssessmentResponse extends Model
         return [
             'is_available' => 'boolean',
             'scored_at' => 'datetime',
+            'score' => 'integer',
         ];
     }
 

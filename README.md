@@ -1,6 +1,6 @@
-# QAMIS — Quality Assurance Management Information System
+# HEQAMIS — Higher Education Quality Assurance Management Information System
 
-Web-based NCHE-aligned compliance monitoring system for Malawian higher education institutions.
+Web-based institutional quality self-assessment system. Institutions assess themselves against national minimum standards and accreditation tools, then generate compliance reports and improvement plans.
 
 ## Stack
 
@@ -24,7 +24,7 @@ Configure database in `.env`:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=qamis
+DB_DATABASE=heqamis
 DB_USERNAME=root
 DB_PASSWORD=
 ```
@@ -47,29 +47,50 @@ php artisan serve
 
 | Email | Password | Role |
 |---|---|---|
-| admin@qamis.mw | password | System Administrator |
-| nche@qamis.mw | password | NCHE Administrator |
+| admin@heqamis.mw | password | System Administrator |
+| nche@heqamis.mw | password | Standards Administrator |
 | admin@demo-university.mw | password | Institution Administrator |
 | qa@demo-university.mw | password | QA Officer |
+| student@demo-university.mw | password | Student (portal: timetable, courses, evaluations) |
+| lecturer@demo-university.mw | password | Lecturer |
 
 ## Features
 
-- Multi-institution tenancy with NCHE oversight
+- Multi-institution support for HEIs managing their own self-assessments
 - Institution profile, org hierarchy, programmes, staff/student data
-- Configurable NCHE standards and assessment tools (institutional + programme)
-- 0–4 scoring with automated compliance engine and accreditation recommendations
+- Configurable minimum standards and accreditation tools (institutional + programme)
+- 0–4 scoring with automated compliance analysis and readiness recommendations
 - Evidence repository with version control
 - Assessment workflow: Draft → Submitted → Reviewed → Approved → Locked
 - Self-Assessment Report and Annual Report generation (PDF/Word)
 - Corrective action tracking, dashboards, search, external evaluator invitations
+- **Course & student management** — courses with codes, lecturers, student accounts, timetables
+- **Student portal** — students view profile, timetable, enrolled courses, and submit anonymous teaching evaluations (NCHE questionnaire)
+
+## Student Portal & Course Management
+
+Institution staff manage academic data from **Programmes → Courses & Students** (or open a programme and click **Manage courses & students**):
+
+1. Add **courses** (code, title, credit hours)
+2. Register **lecturers** and **students** (creates login accounts)
+3. Create **course offerings** (assign lecturer, semester, enrol students)
+4. Build the **timetable** (day, time, venue)
+5. Open an **evaluation period** for end-of-semester teaching evaluations
+
+Students log in at the same login page and are redirected to their portal to view their information and evaluate lecturers.
+
+Demo student: `student@demo-university.mw` / `password` (after `migrate --seed`).
 
 ## Artisan Commands
 
 ```bash
-php artisan qamis:import-tools
+php artisan heqamis:import-tools
+php artisan heqamis:import-rubrics
 ```
 
 Re-import assessment criteria from `Content bank/` markdown files.
+
+Import per-criterion scoring rubrics from `Content bank/scoring/` (run after `heqamis:import-tools`).
 
 ## Content Bank
 

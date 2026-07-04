@@ -25,9 +25,21 @@ class AssessmentPolicy
 
     public function score(User $user, Assessment $assessment): bool
     {
+        return $this->update($user, $assessment);
+    }
+
+    public function update(User $user, Assessment $assessment): bool
+    {
         return $this->sameInstitution($user, $assessment)
             && $user->can('assessment.score')
             && $assessment->isEditable();
+    }
+
+    public function delete(User $user, Assessment $assessment): bool
+    {
+        return $this->sameInstitution($user, $assessment)
+            && $user->can('assessment.create')
+            && ! $assessment->isReadOnly();
     }
 
     public function transition(User $user, Assessment $assessment, AssessmentStatus $toStatus): bool

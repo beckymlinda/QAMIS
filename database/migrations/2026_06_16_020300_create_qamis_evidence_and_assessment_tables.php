@@ -37,7 +37,7 @@ return new class extends Migration
             $table->timestamp('uploaded_at')->useCurrent();
             $table->timestamps();
 
-            $table->unique(['evidence_document_id', 'version_no']);
+            $table->unique(['evidence_document_id', 'version_no'], 'evidence_doc_version_unique');
         });
 
         Schema::create('evidence_standard_links', function (Blueprint $table) {
@@ -86,14 +86,19 @@ return new class extends Migration
             $table->timestamp('scored_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['assessment_id', 'assessment_criterion_id']);
+            $table->unique(['assessment_id', 'assessment_criterion_id'], 'assessment_response_unique');
         });
 
         Schema::create('assessment_response_evidence', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('assessment_response_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('evidence_document_version_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('assessment_response_id');
+            $table->unsignedBigInteger('evidence_document_version_id');
             $table->timestamps();
+
+            $table->foreign('assessment_response_id', 'are_response_fk')
+                ->references('id')->on('assessment_responses')->cascadeOnDelete();
+            $table->foreign('evidence_document_version_id', 'are_evidence_ver_fk')
+                ->references('id')->on('evidence_document_versions')->cascadeOnDelete();
         });
 
         Schema::create('assessment_section_summaries', function (Blueprint $table) {

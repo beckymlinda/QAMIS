@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'institution.context' => \App\Http\Middleware\SetInstitutionContext::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         ]);
 
         $middleware->appendToGroup('web', [

@@ -40,10 +40,13 @@ return new class extends Migration
             $table->date('deadline')->nullable();
             $table->string('status')->default('pending');
             $table->text('progress_notes')->nullable();
-            $table->foreignId('completion_evidence_id')->nullable()->constrained('evidence_document_versions')->nullOnDelete();
+            $table->unsignedBigInteger('completion_evidence_id')->nullable();
             $table->timestamp('escalated_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
+
+            $table->foreign('completion_evidence_id', 'ca_completion_evidence_fk')
+                ->references('id')->on('evidence_document_versions')->nullOnDelete();
         });
 
         Schema::create('report_templates', function (Blueprint $table) {

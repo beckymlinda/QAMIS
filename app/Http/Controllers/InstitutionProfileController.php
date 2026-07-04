@@ -7,17 +7,14 @@ use App\Models\InstitutionContact;
 use App\Models\InstitutionProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class InstitutionProfileController extends Controller
 {
-    public function edit(Institution $institution): View
+    public function edit(Institution $institution): RedirectResponse
     {
         $this->authorize('update', $institution);
-        $profile = $institution->profile ?? new InstitutionProfile(['institution_id' => $institution->id]);
-        $contact = $institution->contact ?? new InstitutionContact(['institution_id' => $institution->id]);
 
-        return view('institutions.profile.edit', compact('institution', 'profile', 'contact'));
+        return redirect()->route('institutions.report-data.index', $institution);
     }
 
     public function update(Request $request, Institution $institution): RedirectResponse
@@ -67,6 +64,7 @@ class InstitutionProfileController extends Controller
             ]
         );
 
-        return back()->with('success', 'Institution profile updated.');
+        return redirect()->route('institutions.report-data.index', $institution)
+            ->with('success', 'Institution profile updated.');
     }
 }

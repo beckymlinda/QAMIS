@@ -17,6 +17,7 @@ class Assessment extends Model
     protected $fillable = [
         'institution_id', 'programme_id', 'assessment_template_id', 'assessment_type',
         'title', 'period_start', 'period_end', 'status', 'assessor_names',
+        'narrative_recommendations',
         'submitted_at', 'reviewed_at', 'approved_at', 'approved_by', 'locked_at',
     ];
 
@@ -30,6 +31,7 @@ class Assessment extends Model
             'approved_at' => 'datetime',
             'locked_at' => 'datetime',
             'status' => AssessmentStatus::class,
+            'narrative_recommendations' => 'array',
         ];
     }
 

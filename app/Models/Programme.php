@@ -16,6 +16,7 @@ class Programme extends Model
         'institution_id', 'org_unit_id', 'name', 'level', 'delivery_modes',
         'nche_accreditation_status', 'professional_body',
         'curriculum_developed_at', 'curriculum_reviewed_at', 'accredited_at',
+        'timetable_generation_pass',
     ];
 
     protected function casts(): array
@@ -41,5 +42,15 @@ class Programme extends Model
     public function staffMembers(): HasMany
     {
         return $this->hasMany(StaffMember::class);
+    }
+
+    public function courses(): HasMany
+    {
+        return $this->hasMany(Course::class);
+    }
+
+    public function students(): HasMany
+    {
+        return $this->hasMany(Student::class);
     }
 }

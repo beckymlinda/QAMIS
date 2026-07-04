@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CorrectiveAction;
 use App\Models\Recommendation;
+use App\Support\InstitutionScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +14,11 @@ class CorrectiveActionController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', CorrectiveAction::class);
-        $actions = CorrectiveAction::with(['recommendation', 'assignee'])->latest()->paginate(20);
+        $actions = CorrectiveAction::query()
+            ->whereHas('recommendation', fn ($query) => InstitutionScope::apply($query))
+            ->with(['recommendation', 'assignee'])
+            ->latest()
+            ->paginate(20);
 
         return view('corrective-actions.index', compact('actions'));
     }

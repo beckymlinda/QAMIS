@@ -6,6 +6,7 @@ use App\Models\GeneratedReport;
 use App\Models\Institution;
 use App\Services\Reports\AnnualReportGenerator;
 use App\Services\Reports\SelfAssessmentReportGenerator;
+use App\Support\InstitutionScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +18,10 @@ class ReportController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', GeneratedReport::class);
-        $reports = GeneratedReport::with('template')->latest()->paginate(20);
+        $reports = InstitutionScope::apply(GeneratedReport::query())
+            ->with('template')
+            ->latest()
+            ->paginate(20);
 
         return view('reports.index', compact('reports'));
     }
@@ -28,6 +32,11 @@ class ReportController extends Controller
 
         $institution = Institution::findOrFail(
             auth()->user()->institution_id ?? $request->session()->get('active_institution_id')
+        );
+
+        abort_unless(
+            auth()->user()->isNcheOrSystemAdmin() || auth()->user()->institution_id === $institution->id,
+            403
         );
 
         $report = $generator->generate($institution, null, (int) ($request->year ?? date('Y')));
@@ -41,6 +50,11 @@ class ReportController extends Controller
 
         $institution = Institution::findOrFail(
             auth()->user()->institution_id ?? $request->session()->get('active_institution_id')
+        );
+
+        abort_unless(
+            auth()->user()->isNcheOrSystemAdmin() || auth()->user()->institution_id === $institution->id,
+            403
         );
 
         $report = $generator->generate($institution, (int) ($request->year ?? date('Y')));

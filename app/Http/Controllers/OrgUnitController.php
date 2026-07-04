@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OrgUnit;
+use App\Support\InstitutionScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,7 +13,11 @@ class OrgUnitController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', OrgUnit::class);
-        $orgUnits = OrgUnit::with('parent')->orderBy('type')->orderBy('name')->paginate(30);
+        $orgUnits = InstitutionScope::apply(OrgUnit::query())
+            ->with('parent')
+            ->orderBy('type')
+            ->orderBy('name')
+            ->paginate(30);
 
         return view('org-units.index', compact('orgUnits'));
     }
@@ -20,7 +25,7 @@ class OrgUnitController extends Controller
     public function create(): View
     {
         $this->authorize('create', OrgUnit::class);
-        $parents = OrgUnit::orderBy('name')->get();
+        $parents = InstitutionScope::apply(OrgUnit::query())->orderBy('name')->get();
 
         return view('org-units.create', compact('parents'));
     }

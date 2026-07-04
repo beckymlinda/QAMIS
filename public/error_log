@@ -1,0 +1,7 @@
+[27-Jun-2026 06:25:02 UTC] PHP Fatal error:  Uncaught RuntimeException: Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.2.0". You are running 7.3.33. in /home/educonsult/public_html/QAMIS/vendor/composer/platform_check.php:22
+Stack trace:
+#0 /home/educonsult/public_html/QAMIS/vendor/composer/autoload_real.php(25): require()
+#1 /home/educonsult/public_html/QAMIS/vendor/autoload.php(22): ComposerAutoloaderInit53b5d56b3b7e3cbac1713e68c8850f6c::getLoader()
+#2 /home/educonsult/public_html/QAMIS/public/index.php(14): require('/home/educonsul...')
+#3 {main}
+  thrown in /home/educonsult/public_html/QAMIS/vendor/composer/platform_check.php on line 22
