@@ -12,6 +12,7 @@
 
     <div class="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         @include('partials.alerts')
+        @include('lms.partials.course-nav', ['offering' => $offering, 'active' => 'assignments', 'role' => 'lecturer'])
 
         <div class="grid gap-6 lg:grid-cols-5">
             <div class="lg:col-span-3 space-y-4">

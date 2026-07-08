@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -14,7 +15,7 @@ class User extends Authenticatable
     use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
-        'institution_id', 'name', 'email', 'password', 'is_active', 'last_login_at',
+        'institution_id', 'name', 'email', 'password', 'is_active', 'last_login_at', 'profile_photo_path',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -54,8 +55,22 @@ class User extends Authenticatable
         return $this->hasRole('lecturer');
     }
 
+    public function isApplicant(): bool
+    {
+        return $this->hasRole('applicant');
+    }
+
+    public function isGuestInstitution(): bool
+    {
+        return $this->hasRole('guest_institution');
+    }
+
     public function homeRoute(): string
     {
+        if ($this->isApplicant()) {
+            return route('applicant.dashboard');
+        }
+
         if ($this->isStudent()) {
             return route('student.dashboard');
         }
@@ -70,5 +85,40 @@ class User extends Authenticatable
     public function isNcheOrSystemAdmin(): bool
     {
         return $this->hasAnyRole(['system_admin', 'nche_admin']);
+    }
+
+    public function initials(): string
+    {
+        $initials = collect(explode(' ', $this->name))
+            ->filter()
+            ->take(2)
+            ->map(fn (string $part) => strtoupper(substr($part, 0, 1)))
+            ->implode('');
+
+        return $initials !== '' ? $initials : '?';
+    }
+
+    public function hasProfilePhoto(): bool
+    {
+        return filled($this->profile_photo_path)
+            && Storage::disk('public')->exists($this->profile_photo_path);
+    }
+
+    public function profilePhotoUrl(): ?string
+    {
+        if (! $this->hasProfilePhoto()) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->profile_photo_path);
+    }
+
+    public function deleteProfilePhoto(): void
+    {
+        if ($this->profile_photo_path && Storage::disk('public')->exists($this->profile_photo_path)) {
+            Storage::disk('public')->delete($this->profile_photo_path);
+        }
+
+        $this->forceFill(['profile_photo_path' => null])->save();
     }
 }

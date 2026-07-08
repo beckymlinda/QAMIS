@@ -13,7 +13,11 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'EDUC - HEMIS'),
+
+    'full_name' => env('APP_FULL_NAME', 'Higher Education Information Management System (EDUC - HEMIS)'),
+
+    'short_name' => env('APP_SHORT_NAME', 'EDUC - HEMIS'),
 
     /*
     |--------------------------------------------------------------------------

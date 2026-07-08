@@ -15,6 +15,7 @@ class LmsAssignment extends Model
         'attachment_file_path',
         'due_at',
         'max_score',
+        'coursework_weight_percent',
         'allow_late',
         'is_published',
     ];
@@ -23,6 +24,7 @@ class LmsAssignment extends Model
     {
         return [
             'due_at' => 'datetime',
+            'coursework_weight_percent' => 'decimal:2',
             'allow_late' => 'boolean',
             'is_published' => 'boolean',
         ];

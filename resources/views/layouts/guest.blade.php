@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'HEQAMIS') }} — {{ $title ?? 'Account' }}</title>
+        <title>{{ config('app.short_name') }} — {{ $title ?? 'Account' }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -17,15 +17,15 @@
             <div class="hidden lg:flex lg:w-1/2 bg-heqamis-blue text-white flex-col justify-between p-12">
                 <a href="{{ route('welcome') }}" class="flex items-center gap-3">
                     @if (file_exists(public_path('images/logo.png')))
-                        <img src="{{ asset('images/logo.png') }}" alt="HEQAMIS" class="h-14 w-auto object-contain">
+                        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.short_name') }}" class="h-14 w-auto object-contain">
                     @else
-                        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-heqamis-green text-lg font-bold text-heqamis-blue">H</span>
+                        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-heqamis-green text-lg font-bold text-heqamis-blue">E</span>
                     @endif
-                    <span class="text-2xl font-bold tracking-wide">HEQAMIS</span>
+                    <span class="text-2xl font-bold tracking-wide">{{ config('app.short_name') }}</span>
                 </a>
 
                 <div>
-                    <h1 class="text-3xl font-bold leading-tight">Quality Assessment Management Information System</h1>
+                    <h1 class="text-3xl font-bold leading-tight">{{ config('app.full_name') }}</h1>
                     <p class="mt-4 text-white/80 text-lg max-w-md">
                         Self-assessment, compliance tracking, and reporting for institutional and programme accreditation.
                     </p>
@@ -39,11 +39,11 @@
                     <div class="mb-8 lg:hidden text-center">
                         <a href="{{ route('welcome') }}" class="inline-flex flex-col items-center gap-2">
                             @if (file_exists(public_path('images/logo.png')))
-                                <img src="{{ asset('images/logo.png') }}" alt="HEQAMIS" class="h-16 w-auto object-contain">
+                                <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.short_name') }}" class="h-16 w-auto object-contain">
                             @else
-                                <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-heqamis-green text-lg font-bold text-heqamis-blue">H</span>
+                                <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-heqamis-green text-lg font-bold text-heqamis-blue">E</span>
                             @endif
-                            <span class="text-xl font-bold text-heqamis-blue">HEQAMIS</span>
+                            <span class="text-xl font-bold text-heqamis-blue">{{ config('app.short_name') }}</span>
                         </a>
                     </div>
 

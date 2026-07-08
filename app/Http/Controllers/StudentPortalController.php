@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\CourseOffering;
 use App\Models\EvaluationQuestion;
+use App\Models\LmsNotification;
 use App\Models\TeachingEvaluation;
 use App\Models\TeachingEvaluationResponse;
+use App\Services\LmsService;
 use App\Services\StudentCourseRegistrationService;
 use App\Services\StudentPortalService;
 use Illuminate\Http\RedirectResponse;
@@ -17,6 +19,7 @@ class StudentPortalController extends Controller
     public function __construct(
         protected StudentPortalService $portalService,
         protected StudentCourseRegistrationService $registrationService,
+        protected LmsService $lms,
     ) {}
 
     protected function student()
@@ -35,8 +38,24 @@ class StudentPortalController extends Controller
         $evaluationItems = $this->portalService->evaluationItems($student, $period);
         $pendingCount = $evaluationItems->where('status', 'pending')->count();
         $upcomingSlots = $this->portalService->timetableSlots($student)->take(5);
+        $summary = $this->portalService->dashboardSummary($student);
+        $unreadNotifications = $this->lms->unreadNotifications(auth()->user());
+        $recentNotifications = LmsNotification::query()
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->take(5)
+            ->get();
 
-        return view('student.dashboard', compact('student', 'period', 'evaluationItems', 'pendingCount', 'upcomingSlots'));
+        return view('student.dashboard', compact(
+            'student',
+            'period',
+            'evaluationItems',
+            'pendingCount',
+            'upcomingSlots',
+            'summary',
+            'unreadNotifications',
+            'recentNotifications',
+        ));
     }
 
     public function profile(): View

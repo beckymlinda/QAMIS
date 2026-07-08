@@ -15,6 +15,7 @@ use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class LmsTest extends TestCase
@@ -122,6 +123,7 @@ class LmsTest extends TestCase
                 'title' => 'Essay 1',
                 'instructions' => 'Write 1000 words.',
                 'max_score' => 100,
+                'coursework_weight_percent' => 20,
                 'is_published' => 1,
             ])
             ->assertRedirect();
@@ -149,9 +151,14 @@ class LmsTest extends TestCase
             'title' => 'Essay 1',
             'instructions' => 'Submit your essay.',
             'max_score' => 100,
+            'coursework_weight_percent' => 40,
+            'attachment_file_path' => 'lms/'.$offering->id.'/assignments/sample.pdf',
             'is_published' => true,
             'due_at' => now()->addWeek(),
         ]);
+
+        Storage::fake('local');
+        Storage::disk('local')->put($assignment->attachment_file_path, 'sample pdf content');
 
         LmsNotification::create([
             'user_id' => $studentUser->id,
@@ -162,7 +169,7 @@ class LmsTest extends TestCase
         $this->actingAs($studentUser)
             ->get(route('student.lms.show', $offering))
             ->assertOk()
-            ->assertSee('Course workspace');
+            ->assertSee('Overview');
 
         $this->actingAs($studentUser)
             ->post(route('student.lms.assignments.submit', [$offering, $assignment]), [
@@ -192,5 +199,174 @@ class LmsTest extends TestCase
             'student_id' => $student->id,
             'score' => 85,
         ]);
+
+        $this->assertDatabaseHas('course_results', [
+            'student_course_enrolment_id' => $offering->studentEnrolments()->where('student_id', $student->id)->value('id'),
+        ]);
+
+        $this->actingAs($studentUser)
+            ->get(route('student.lms.assignments.show', [$offering, $assignment]))
+            ->assertOk()
+            ->assertSee('Download assignment');
+
+        $this->actingAs($studentUser)
+            ->get(route('student.lms.assignments.attachment', [$offering, $assignment]))
+            ->assertOk();
+    }
+
+    public function test_published_assignment_notifies_enrolled_students(): void
+    {
+        ['lecturerUser' => $lecturer, 'studentUser' => $studentUser, 'offering' => $offering] = $this->seedOffering();
+
+        $this->actingAs($lecturer)
+            ->post(route('lecturer.lms.assignments.store', $offering), [
+                'title' => 'Essay 1',
+                'instructions' => 'Write 1000 words.',
+                'max_score' => 100,
+                'coursework_weight_percent' => 20,
+                'is_published' => 1,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('lms_notifications', [
+            'user_id' => $studentUser->id,
+            'title' => 'New assignment: Essay 1',
+        ]);
+    }
+
+    public function test_assignment_submission_notifies_lecturer(): void
+    {
+        ['lecturerUser' => $lecturer, 'studentUser' => $studentUser, 'student' => $student, 'offering' => $offering] = $this->seedOffering();
+
+        $assignment = LmsAssignment::create([
+            'course_offering_id' => $offering->id,
+            'title' => 'Essay 1',
+            'instructions' => 'Submit your essay.',
+            'max_score' => 100,
+            'coursework_weight_percent' => 40,
+            'is_published' => true,
+            'due_at' => now()->addWeek(),
+        ]);
+
+        $this->actingAs($studentUser)
+            ->post(route('student.lms.assignments.submit', [$offering, $assignment]), [
+                'body' => 'My essay response.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('lms_notifications', [
+            'user_id' => $lecturer->id,
+            'title' => 'Assignment submitted: Essay 1',
+        ]);
+    }
+
+    public function test_published_module_material_notifies_students(): void
+    {
+        ['lecturerUser' => $lecturer, 'studentUser' => $studentUser, 'offering' => $offering] = $this->seedOffering();
+
+        $this->actingAs($lecturer)
+            ->post(route('lecturer.lms.modules.store', $offering), [
+                'title' => 'Week 1',
+                'description' => 'Introduction',
+                'is_published' => 1,
+                'material_title' => 'Lecture slides',
+                'material_type' => 'document',
+                'allow_download' => 1,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('lms_notifications', [
+            'user_id' => $studentUser->id,
+            'title' => 'New learning material: Lecture slides',
+        ]);
+    }
+
+    public function test_lecturer_and_student_can_view_notification_inboxes(): void
+    {
+        ['lecturerUser' => $lecturer, 'studentUser' => $studentUser] = $this->seedOffering();
+
+        LmsNotification::create([
+            'user_id' => $lecturer->id,
+            'title' => 'Submission received',
+            'body' => 'A student submitted work.',
+        ]);
+
+        LmsNotification::create([
+            'user_id' => $studentUser->id,
+            'title' => 'New assignment',
+            'body' => 'Check your course workspace.',
+        ]);
+
+        $this->actingAs($lecturer)
+            ->get(route('lecturer.notifications'))
+            ->assertOk()
+            ->assertSee('Submission received');
+
+        $this->actingAs($studentUser)
+            ->get(route('student.notifications'))
+            ->assertOk()
+            ->assertSee('New assignment');
+    }
+
+    public function test_unread_notification_count_shows_on_student_bell(): void
+    {
+        ['studentUser' => $studentUser] = $this->seedOffering();
+
+        LmsNotification::create([
+            'user_id' => $studentUser->id,
+            'title' => 'New assignment: Essay 1',
+            'body' => 'Due tomorrow.',
+        ]);
+
+        LmsNotification::create([
+            'user_id' => $studentUser->id,
+            'title' => 'New learning material: Week 1 slides',
+            'body' => 'Added to module: Week 1',
+        ]);
+
+        $this->actingAs($studentUser)
+            ->get(route('student.dashboard'))
+            ->assertOk()
+            ->assertSee('Notifications (2 unread)', false);
+    }
+
+    public function test_discussion_chat_supports_messages_files_and_close(): void
+    {
+        Storage::fake('local');
+        ['lecturerUser' => $lecturer, 'studentUser' => $studentUser, 'offering' => $offering] = $this->seedOffering();
+
+        $this->actingAs($lecturer)
+            ->post(route('lecturer.lms.discussions.store', $offering), [
+                'title' => 'Week 1 Q&A',
+                'body' => 'Ask questions about the first lecture.',
+            ])
+            ->assertRedirect();
+
+        $discussion = \App\Models\LmsDiscussion::first();
+
+        $this->actingAs($studentUser)
+            ->post(route('student.lms.discussions.posts.store', [$offering, $discussion]), [
+                'body' => 'Thanks, I have a question about the assignment.',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($lecturer)
+            ->get(route('lecturer.lms.discussions.show', [$offering, $discussion]))
+            ->assertOk()
+            ->assertSee('Week 1 Q&A')
+            ->assertSee('Ask questions about the first lecture.')
+            ->assertSee('Thanks, I have a question');
+
+        $this->actingAs($lecturer)
+            ->post(route('lecturer.lms.discussions.close', [$offering, $discussion]))
+            ->assertRedirect();
+
+        $this->assertTrue($discussion->fresh()->is_closed);
+
+        $this->actingAs($studentUser)
+            ->post(route('student.lms.discussions.posts.store', [$offering, $discussion]), [
+                'body' => 'Another message',
+            ])
+            ->assertForbidden();
     }
 }

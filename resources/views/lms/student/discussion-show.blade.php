@@ -1,26 +1,24 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-[#0f2744]">{{ $discussion->title }}</h2>
-            <a href="{{ route('student.lms.discussions', $offering) }}" class="text-sm text-[#0f2744] hover:text-[#8cc63f]">← Discussions</a>
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-[#8cc63f]">Course LMS · Discussions</p>
+                <h2 class="text-xl font-bold text-[#0f2744]">Discussion forum</h2>
+            </div>
+            <a href="{{ route('student.courses') }}" class="text-sm font-medium text-[#0f2744] hover:text-[#8cc63f]">← My courses</a>
         </div>
     </x-slot>
-    <div class="py-6 max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
+
+    <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         @include('partials.alerts')
-        <div class="bg-white rounded-lg shadow p-5">
-            <p class="text-sm text-gray-500">{{ $discussion->author?->name }}</p>
-            <p class="mt-3 whitespace-pre-wrap">{{ $discussion->body }}</p>
-        </div>
-        @foreach($discussion->posts as $post)
-            <div class="bg-white rounded-lg shadow p-4">
-                <p class="text-sm text-gray-500">{{ $post->user?->name }}</p>
-                <p class="mt-2 whitespace-pre-wrap">{{ $post->body }}</p>
-            </div>
-        @endforeach
-        <form method="POST" action="{{ route('student.lms.discussions.posts.store', [$offering, $discussion]) }}" class="bg-white rounded-lg shadow p-5 space-y-3">
-            @csrf
-            <textarea name="body" rows="3" required class="w-full rounded-lg border-gray-300"></textarea>
-            <button type="submit" class="rounded-lg bg-[#8cc63f] px-4 py-2 font-semibold text-[#0f2744]">Reply</button>
-        </form>
+        @include('lms.partials.course-nav', ['offering' => $offering, 'active' => 'discussions', 'role' => 'student'])
+
+        @include('lms.partials.discussion-chat', [
+            'offering' => $offering,
+            'discussion' => $discussion,
+            'messages' => $messages,
+            'isCreator' => $isCreator,
+            'role' => 'student',
+        ])
     </div>
 </x-app-layout>

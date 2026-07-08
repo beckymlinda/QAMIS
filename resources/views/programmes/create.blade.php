@@ -31,6 +31,7 @@
                     @endforeach
                 </div>
             </div>
+            @include('programmes.partials.admission-fields', ['programme' => null])
             <button class="px-4 py-2 bg-[#0f2744] text-white rounded-md hover:bg-[#1a3a5c]">Register</button>
         </form>
     </div>

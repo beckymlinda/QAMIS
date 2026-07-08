@@ -8,6 +8,10 @@ use App\Models\LmsAnnouncement;
 use App\Models\LmsAssignment;
 use App\Models\LmsAssignmentSubmission;
 use App\Models\LmsCourseOutline;
+use App\Models\LmsDiscussion;
+use App\Models\LmsDiscussionPost;
+use App\Models\LmsMaterial;
+use App\Models\LmsModule;
 use App\Models\LmsNotification;
 use App\Models\LmsOutlineItem;
 use App\Models\StaffMember;
@@ -115,6 +119,54 @@ class LmsService
         }
     }
 
+    public function notifyOfferingLecturer(CourseOffering $offering, string $title, string $body, string $link): void
+    {
+        $offering->loadMissing('lecturer.user');
+        $user = $offering->lecturer?->user;
+
+        if ($user) {
+            $this->notify($user, $title, $body, $link);
+        }
+    }
+
+    public function notifyStudentsOfModuleContent(CourseOffering $offering, LmsModule $module, string $materialTitle): void
+    {
+        if (! $module->is_published || ! $module->isVisibleNow()) {
+            return;
+        }
+
+        $this->notifyEnrolledStudents(
+            $offering,
+            'New learning material: '.$materialTitle,
+            'Added to module: '.$module->title,
+            route('student.lms.content', $offering)
+        );
+    }
+
+    public function addMaterial(
+        CourseOffering $offering,
+        LmsModule $module,
+        array $validated,
+        $file = null,
+        bool $allowDownload = true,
+    ): LmsMaterial {
+        $path = null;
+        if ($file) {
+            $path = $this->storeUpload($offering, $file, 'materials');
+        }
+
+        $maxOrder = $module->materials()->max('sort_order') ?? 0;
+
+        return $module->materials()->create([
+            'title' => $validated['title'],
+            'type' => $validated['type'],
+            'file_path' => $path,
+            'external_url' => $validated['external_url'] ?? null,
+            'sort_order' => $maxOrder + 1,
+            'allow_download' => $allowDownload,
+        ]);
+    }
+
     public function notify(User $user, string $title, ?string $body = null, ?string $link = null): LmsNotification
     {
         return LmsNotification::create([
@@ -218,6 +270,56 @@ class LmsService
             ->where('user_id', $user->id)
             ->whereNull('read_at')
             ->count();
+    }
+
+    public function discussionMessages(LmsDiscussion $discussion): Collection
+    {
+        $opening = collect([[
+            'key' => 'opening',
+            'post_id' => null,
+            'user' => $discussion->author,
+            'body' => $discussion->body,
+            'created_at' => $discussion->created_at,
+            'file_path' => null,
+            'file_name' => null,
+        ]]);
+
+        $posts = $discussion->posts->map(fn (LmsDiscussionPost $post) => [
+            'key' => 'post-'.$post->id,
+            'post_id' => $post->id,
+            'user' => $post->user,
+            'body' => $post->body,
+            'created_at' => $post->created_at,
+            'file_path' => $post->file_path,
+            'file_name' => $post->file_name,
+        ]);
+
+        return $opening->concat($posts)->sortBy('created_at')->values();
+    }
+
+    public function storeDiscussionPost(
+        CourseOffering $offering,
+        LmsDiscussion $discussion,
+        User $user,
+        ?string $body,
+        $file = null,
+    ): LmsDiscussionPost {
+        abort_if($discussion->is_closed, 403, 'This discussion is closed.');
+        abort_unless($body || $file, 422, 'Write a message or attach a file.');
+
+        $path = null;
+        $name = null;
+        if ($file) {
+            $path = $this->storeUpload($offering, $file, 'discussions');
+            $name = $file->getClientOriginalName();
+        }
+
+        return $discussion->posts()->create([
+            'user_id' => $user->id,
+            'body' => $body ?? '',
+            'file_path' => $path,
+            'file_name' => $name,
+        ]);
     }
 
     public function enrolmentIds(CourseOffering $offering): Collection

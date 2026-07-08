@@ -75,4 +75,9 @@ class Institution extends Model
     {
         return $this->hasMany(Assessment::class);
     }
+
+    public function websiteSetting(): HasOne
+    {
+        return $this->hasOne(InstitutionWebsiteSetting::class);
+    }
 }

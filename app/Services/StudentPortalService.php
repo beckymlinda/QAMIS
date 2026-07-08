@@ -7,6 +7,7 @@ use App\Models\EvaluationPeriod;
 use App\Models\EvaluationQuestion;
 use App\Models\Student;
 use App\Models\TeachingEvaluation;
+use App\Services\LmsService;
 use Illuminate\Support\Collection;
 
 class StudentPortalService
@@ -148,5 +149,68 @@ class StudentPortalService
         }
 
         return $totalCredits > 0 ? round($totalPoints / $totalCredits, 2) : null;
+    }
+
+    public function cumulativeGpa(Student $student): ?float
+    {
+        return $this->semesterGpa($this->publishedResults($student));
+    }
+
+    /**
+     * @return array{
+     *     offerings: Collection,
+     *     totalCourses: int,
+     *     pendingAssignments: int,
+     *     upcomingDeadlines: Collection,
+     *     publishedResultsCount: int,
+     *     semesterGpa: ?float,
+     *     academicYearLabel: string,
+     *     semesterLabel: int
+     * }
+     */
+    public function dashboardSummary(Student $student): array
+    {
+        $offerings = $this->enrolledOfferings($student);
+        $lms = app(LmsService::class);
+
+        $pendingAssignments = 0;
+        $upcomingDeadlines = collect();
+
+        foreach ($offerings as $offering) {
+            $progress = $lms->studentProgress($student, $offering);
+            $pendingAssignments += $progress['pendingCount'];
+
+            foreach ($progress['upcomingDeadlines'] as $assignment) {
+                $upcomingDeadlines->push([
+                    'assignment' => $assignment,
+                    'offering' => $offering,
+                ]);
+            }
+        }
+
+        $upcomingDeadlines = $upcomingDeadlines
+            ->sortBy(fn (array $item) => $item['assignment']->due_at)
+            ->take(5)
+            ->values();
+
+        $primaryOffering = $offerings
+            ->sortByDesc(fn (CourseOffering $offering) => $offering->academic_year.$offering->semester)
+            ->first();
+
+        $academicYearLabel = $primaryOffering?->academic_year ?? now()->format('Y').'/'.now()->addYear()->format('Y');
+        $semesterLabel = (int) ($primaryOffering?->semester ?? 1);
+
+        $publishedEnrolments = $this->publishedResults($student, $academicYearLabel, $semesterLabel);
+
+        return [
+            'offerings' => $offerings,
+            'totalCourses' => $offerings->count(),
+            'pendingAssignments' => $pendingAssignments,
+            'upcomingDeadlines' => $upcomingDeadlines,
+            'publishedResultsCount' => $publishedEnrolments->count(),
+            'semesterGpa' => $this->semesterGpa($publishedEnrolments),
+            'academicYearLabel' => $academicYearLabel,
+            'semesterLabel' => $semesterLabel,
+        ];
     }
 }

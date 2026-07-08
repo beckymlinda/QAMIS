@@ -1,68 +1,52 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div>
-            <h2 class="font-semibold text-xl text-[#0f2744]">Student Portal</h2>
-            <p class="text-sm text-gray-500 mt-1">Welcome, {{ $student->fullName() }}</p>
-        </div>
-    </x-slot>
+    <div class="min-h-full bg-gradient-to-b from-slate-50 via-gray-50 to-gray-100/80">
+        <div class="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
+            @include('partials.alerts')
 
-    <div class="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        @include('partials.alerts')
+            @include('student.partials.dashboard-hero')
 
-        <div class="grid md:grid-cols-3 gap-4">
-            <div class="bg-white rounded-lg shadow p-5">
-                <p class="text-sm text-gray-500">Programme</p>
-                <p class="text-lg font-semibold text-[#0f2744]">{{ $student->programme->name }}</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-5">
-                <p class="text-sm text-gray-500">Student number</p>
-                <p class="text-lg font-semibold text-[#0f2744]">{{ $student->student_number }}</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-5">
-                <p class="text-sm text-gray-500">Year of study</p>
-                <p class="text-lg font-semibold text-[#0f2744]">Year {{ $student->year_of_study }}</p>
-            </div>
-        </div>
+            @include('student.partials.summary-cards')
 
-        @if($period)
-            <div class="rounded-lg border border-[#8cc63f]/50 bg-[#8cc63f]/10 p-5">
-                <h3 class="font-semibold text-[#0f2744]">Teaching evaluation period open</h3>
-                <p class="text-sm text-gray-600 mt-1">{{ $period->title }} — closes {{ $period->closes_at->format('d M Y, H:i') }}</p>
-                @if($pendingCount > 0)
-                    <p class="text-sm mt-2 text-[#0f2744]"><strong>{{ $pendingCount }}</strong> course evaluation(s) pending.</p>
-                    <a href="{{ route('student.evaluations') }}" class="inline-block mt-3 rounded-lg bg-[#0f2744] px-4 py-2 text-sm font-medium text-white">Complete evaluations</a>
-                @else
-                    <p class="text-sm mt-2 text-green-700">All evaluations submitted for this period. Thank you.</p>
-                @endif
-            </div>
-        @endif
+            @include('student.partials.dashboard-evaluation-banner')
 
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="font-semibold text-[#0f2744] mb-3">Quick links</h3>
-                <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('student.timetable') }}" class="rounded-lg border border-[#0f2744]/20 px-4 py-2 text-sm font-medium text-[#0f2744] hover:bg-gray-50">My timetable</a>
-                    <a href="{{ route('student.courses') }}" class="rounded-lg border border-[#0f2744]/20 px-4 py-2 text-sm font-medium text-[#0f2744] hover:bg-gray-50">My courses</a>
-                    <a href="{{ route('student.notifications') }}" class="rounded-lg border border-[#0f2744]/20 px-4 py-2 text-sm font-medium text-[#0f2744] hover:bg-gray-50">Notifications</a>
-            <a href="{{ route('student.exam-results') }}" class="rounded-lg border border-[#0f2744]/20 px-4 py-2 text-sm font-medium text-[#0f2744] hover:bg-gray-50">Exam results</a>
-                    <a href="{{ route('student.profile') }}" class="rounded-lg border border-[#0f2744]/20 px-4 py-2 text-sm font-medium text-[#0f2744] hover:bg-gray-50">My profile</a>
-                    <a href="{{ route('student.evaluations') }}" class="rounded-lg border border-[#8cc63f] bg-[#8cc63f]/20 px-4 py-2 text-sm font-medium text-[#0f2744]">Evaluate lecturers</a>
+            @include('student.partials.dashboard-quick-actions')
+
+            <div class="grid grid-cols-1 gap-8 xl:grid-cols-3">
+                <div class="space-y-8 xl:col-span-2">
+                    <section aria-labelledby="student-courses-heading">
+                        <div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <h2 id="student-courses-heading" class="text-xl font-bold text-[#0f2744] sm:text-[1.375rem]">My Courses</h2>
+                                <p class="mt-1 text-xs text-gray-500">{{ $summary['totalCourses'] }} {{ Str::plural('course', $summary['totalCourses']) }} this academic period</p>
+                            </div>
+                            <a href="{{ route('student.courses') }}" class="text-sm font-semibold text-[#0f2744] transition hover:text-[#8cc63f] focus:outline-none focus:underline">
+                                Manage courses →
+                            </a>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                            @forelse($summary['offerings']->take(4) as $offering)
+                                @include('student.partials.course-card', ['offering' => $offering, 'student' => $student])
+                            @empty
+                                <div class="col-span-full rounded-2xl bg-white p-12 text-center shadow-md">
+                                    <i class="bi bi-journal-x text-4xl text-gray-300" aria-hidden="true"></i>
+                                    <p class="mt-4 text-base font-medium text-[#0f2744]">No courses enrolled yet</p>
+                                    <p class="mt-2 text-sm text-gray-500">Register for courses to access learning materials and assignments.</p>
+                                    <a href="{{ route('student.courses') }}" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0f2744] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1a3a5c]">
+                                        Browse courses <i class="bi bi-arrow-right-short text-lg" aria-hidden="true"></i>
+                                    </a>
+                                </div>
+                            @endforelse
+                        </div>
+                    </section>
+
+                    @include('student.partials.dashboard-upcoming')
                 </div>
-            </div>
 
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="font-semibold text-[#0f2744] mb-3">Upcoming classes</h3>
-                <ul class="text-sm space-y-2">
-                    @forelse($upcomingSlots as $slot)
-                        @php $offering = $slot->courseOffering; @endphp
-                        <li class="border-b border-gray-100 pb-2">
-                            <strong>{{ $offering->course->code }}</strong> — {{ $slot->dayName() }} {{ substr($slot->start_time, 0, 5) }}
-                            <span class="text-gray-500">@ {{ $slot->venueLabel() }}</span>
-                        </li>
-                    @empty
-                        <li class="text-gray-500">No timetable slots scheduled yet.</li>
-                    @endforelse
-                </ul>
+                <div class="space-y-8">
+                    @include('student.partials.dashboard-deadlines')
+                    @include('student.partials.dashboard-notifications')
+                </div>
             </div>
         </div>
     </div>

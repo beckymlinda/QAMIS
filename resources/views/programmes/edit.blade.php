@@ -34,6 +34,7 @@
                     @endforeach
                 </div>
             </div>
+            @include('programmes.partials.admission-fields', ['programme' => $programme])
             <div class="flex gap-3">
                 <button class="px-4 py-2 bg-[#0f2744] text-white rounded-md hover:bg-[#1a3a5c]">Save changes</button>
                 <a href="{{ route('programmes.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700">Cancel</a>

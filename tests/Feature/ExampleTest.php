@@ -15,6 +15,6 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('Welcome to HEQAMIS Self-Assessment');
+        $response->assertSee('Welcome to EDUC - HEMIS');
     }
 }

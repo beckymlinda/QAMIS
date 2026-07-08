@@ -27,3 +27,12 @@
 .lecturer-progress-fill {
     animation: lecturer-progress-grow 1s ease-out forwards;
 }
+
+.bg-brand-primary { background-color: var(--brand-primary, #0f2744); }
+.bg-brand-secondary { background-color: var(--brand-secondary, #8cc63f); }
+.text-brand-primary { color: var(--brand-primary, #0f2744); }
+.text-brand-secondary { color: var(--brand-secondary, #8cc63f); }
+.border-brand-primary { border-color: var(--brand-primary, #0f2744); }
+.border-brand-secondary { border-color: var(--brand-secondary, #8cc63f); }
+.ring-brand-secondary { --tw-ring-color: var(--brand-secondary, #8cc63f); }
+.hover\:bg-brand-primary-dark:hover { background-color: color-mix(in srgb, var(--brand-primary, #0f2744) 85%, black); }

@@ -27,4 +27,25 @@ class GpaGradingTest extends TestCase
         $this->assertTrue(GpaGrading::hasPassed('C-'));
         $this->assertFalse(GpaGrading::hasPassed('D'));
     }
+
+    public function test_tone_for_grade_points(): void
+    {
+        $this->assertSame('fail', GpaGrading::toneForPoints(1.5));
+        $this->assertSame('warning', GpaGrading::toneForPoints(2.5));
+        $this->assertSame('success', GpaGrading::toneForPoints(3.5));
+    }
+
+    public function test_semester_standing_uses_pass_threshold(): void
+    {
+        $pass = GpaGrading::semesterStanding(2.25);
+        $fail = GpaGrading::semesterStanding(1.75);
+
+        $this->assertTrue($pass['passed']);
+        $this->assertSame('Pass', $pass['label']);
+        $this->assertSame('warning', $pass['tone']);
+
+        $this->assertFalse($fail['passed']);
+        $this->assertSame('Fail', $fail['label']);
+        $this->assertSame('fail', $fail['tone']);
+    }
 }

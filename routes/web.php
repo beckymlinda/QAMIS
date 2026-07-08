@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AssessmentController;
+use App\Models\CourseOffering;
 use App\Http\Controllers\CorrectiveActionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvidenceController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StudentManagementController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfilePhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,6 +25,23 @@ Route::get('/', function () {
 
     return redirect(auth()->user()->homeRoute());
 })->name('welcome');
+
+Route::get('/school/{slug}', [\App\Http\Controllers\PublicWebsiteController::class, 'home'])->name('school.home');
+Route::get('/school/{slug}/about', [\App\Http\Controllers\PublicWebsiteController::class, 'about'])->name('school.about');
+Route::get('/school/{slug}/programs', [\App\Http\Controllers\PublicWebsiteController::class, 'programs'])->name('school.programs');
+Route::get('/school/{slug}/apply', [\App\Http\Controllers\PublicWebsiteController::class, 'applications'])->name('school.applications');
+Route::get('/school/{slug}/portal', [\App\Http\Controllers\PublicWebsiteController::class, 'portal'])->name('school.portal');
+
+Route::get('/school/{slug}/apply/register', [\App\Http\Controllers\ApplicantAuthController::class, 'showRegister'])->name('school.apply.register');
+Route::post('/school/{slug}/apply/register', [\App\Http\Controllers\ApplicantAuthController::class, 'register']);
+Route::get('/school/{slug}/apply/login', [\App\Http\Controllers\ApplicantAuthController::class, 'showLogin'])->name('school.apply.login');
+Route::post('/school/{slug}/apply/login', [\App\Http\Controllers\ApplicantAuthController::class, 'login']);
+
+Route::get('/school/{slug}/portal/student/login', [\App\Http\Controllers\SchoolPortalAuthController::class, 'showStudentLogin'])->name('school.portal.student.login');
+Route::post('/school/{slug}/portal/student/login', [\App\Http\Controllers\SchoolPortalAuthController::class, 'studentLogin']);
+
+Route::middleware('guest')->group(function () {
+});
 
 Route::get('/evaluator/accept/{token}', [ExternalEvaluatorController::class, 'accept'])->name('evaluator.accept');
 
@@ -37,6 +56,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('institutions/{institution}/report-data', [InstitutionReportDataController::class, 'index'])->name('institutions.report-data.index');
     Route::put('institutions/{institution}/report-data', [InstitutionReportDataController::class, 'update'])->name('institutions.report-data.update');
+    Route::get('institutions/{institution}/settings/website', [\App\Http\Controllers\InstitutionWebsiteSettingsController::class, 'edit'])->name('settings.website.edit');
+    Route::put('institutions/{institution}/settings/website', [\App\Http\Controllers\InstitutionWebsiteSettingsController::class, 'update'])->name('settings.website.update');
+    Route::post('institutions/{institution}/settings/website/toggle-publish', [\App\Http\Controllers\InstitutionWebsiteSettingsController::class, 'togglePublish'])->name('settings.website.toggle-publish');
+    Route::delete('institutions/{institution}/settings/website/logo', [\App\Http\Controllers\InstitutionWebsiteSettingsController::class, 'destroyLogo'])->name('settings.website.logo.destroy');
+    Route::get('settings/website/{website}/preview', [\App\Http\Controllers\PublicWebsiteController::class, 'preview'])->name('settings.website.preview');
     Route::post('institutions/{institution}/report-data/governance-members', [InstitutionReportDataController::class, 'storeGovernanceMember'])->name('institutions.report-data.governance.store');
     Route::delete('institutions/{institution}/report-data/governance-members/{governanceMember}', [InstitutionReportDataController::class, 'destroyGovernanceMember'])->name('institutions.report-data.governance.destroy');
     Route::post('institutions/{institution}/report-data/staff-members', [InstitutionReportDataController::class, 'storeStaffMember'])->name('institutions.report-data.staff.store');
@@ -82,9 +106,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/courses', [\App\Http\Controllers\LecturerPortalController::class, 'courses'])->name('courses');
         Route::get('/timetable', [\App\Http\Controllers\LecturerPortalController::class, 'timetable'])->name('timetable');
         Route::get('/evaluations', [\App\Http\Controllers\LecturerPortalController::class, 'evaluations'])->name('evaluations');
+        Route::get('/notifications', [\App\Http\Controllers\LecturerPortalController::class, 'notifications'])->name('notifications');
+        Route::get('/notifications/{notification}/read', [\App\Http\Controllers\LecturerPortalController::class, 'readNotification'])->name('notifications.read');
         Route::get('/offerings/{offering}/students', [\App\Http\Controllers\LecturerPortalController::class, 'students'])->name('offerings.students');
-        Route::get('/offerings/{offering}/grade', [\App\Http\Controllers\LecturerPortalController::class, 'gradeForm'])->name('offerings.grade');
-        Route::post('/offerings/{offering}/grade', [\App\Http\Controllers\LecturerPortalController::class, 'storeGrades'])->name('offerings.grade.store');
+        Route::get('/offerings/{offering}/grade', fn (CourseOffering $offering) => redirect()->route('lecturer.lms.grades', $offering))->name('offerings.grade');
 
         Route::prefix('offerings/{offering}/lms')->name('lms.')->group(function () {
             Route::get('/', [\App\Http\Controllers\LecturerLmsController::class, 'show'])->name('show');
@@ -95,6 +120,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/outline/items/{item}', [\App\Http\Controllers\LecturerLmsController::class, 'destroyOutlineItem'])->name('outline.items.destroy');
             Route::get('/outline/items/{item}/download', [\App\Http\Controllers\LecturerLmsController::class, 'downloadOutlineItem'])->name('outline.items.download');
             Route::get('/content', [\App\Http\Controllers\LecturerLmsController::class, 'content'])->name('content');
+            Route::get('/modules/{module}', [\App\Http\Controllers\LecturerLmsController::class, 'showModule'])->name('modules.show');
             Route::post('/modules', [\App\Http\Controllers\LecturerLmsController::class, 'storeModule'])->name('modules.store');
             Route::put('/modules/{module}', [\App\Http\Controllers\LecturerLmsController::class, 'updateModule'])->name('modules.update');
             Route::delete('/modules/{module}', [\App\Http\Controllers\LecturerLmsController::class, 'destroyModule'])->name('modules.destroy');
@@ -103,10 +129,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/materials/{material}/download', [\App\Http\Controllers\LecturerLmsController::class, 'downloadMaterial'])->name('materials.download');
             Route::get('/announcements', [\App\Http\Controllers\LecturerLmsController::class, 'announcements'])->name('announcements');
             Route::post('/announcements', [\App\Http\Controllers\LecturerLmsController::class, 'storeAnnouncement'])->name('announcements.store');
+            Route::get('/announcements/{announcement}', [\App\Http\Controllers\LecturerLmsController::class, 'showAnnouncement'])->name('announcements.show');
+            Route::put('/announcements/{announcement}', [\App\Http\Controllers\LecturerLmsController::class, 'updateAnnouncement'])->name('announcements.update');
             Route::post('/announcements/{announcement}/publish', [\App\Http\Controllers\LecturerLmsController::class, 'publishAnnouncement'])->name('announcements.publish');
             Route::delete('/announcements/{announcement}', [\App\Http\Controllers\LecturerLmsController::class, 'destroyAnnouncement'])->name('announcements.destroy');
             Route::get('/assignments', [\App\Http\Controllers\LecturerLmsController::class, 'assignments'])->name('assignments');
             Route::post('/assignments', [\App\Http\Controllers\LecturerLmsController::class, 'storeAssignment'])->name('assignments.store');
+            Route::get('/assignments/{assignment}', [\App\Http\Controllers\LecturerLmsController::class, 'showAssignment'])->name('assignments.show');
             Route::put('/assignments/{assignment}', [\App\Http\Controllers\LecturerLmsController::class, 'updateAssignment'])->name('assignments.update');
             Route::delete('/assignments/{assignment}', [\App\Http\Controllers\LecturerLmsController::class, 'destroyAssignment'])->name('assignments.destroy');
             Route::get('/assignments/{assignment}/attachment', [\App\Http\Controllers\LecturerLmsController::class, 'downloadAssignmentAttachment'])->name('assignments.attachment');
@@ -119,7 +148,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/discussions', [\App\Http\Controllers\LecturerLmsController::class, 'discussions'])->name('discussions');
             Route::post('/discussions', [\App\Http\Controllers\LecturerLmsController::class, 'storeDiscussion'])->name('discussions.store');
             Route::get('/discussions/{discussion}', [\App\Http\Controllers\LecturerLmsController::class, 'showDiscussion'])->name('discussions.show');
+            Route::put('/discussions/{discussion}', [\App\Http\Controllers\LecturerLmsController::class, 'updateDiscussion'])->name('discussions.update');
+            Route::delete('/discussions/{discussion}', [\App\Http\Controllers\LecturerLmsController::class, 'destroyDiscussion'])->name('discussions.destroy');
+            Route::post('/discussions/{discussion}/close', [\App\Http\Controllers\LecturerLmsController::class, 'closeDiscussion'])->name('discussions.close');
             Route::post('/discussions/{discussion}/posts', [\App\Http\Controllers\LecturerLmsController::class, 'storeDiscussionPost'])->name('discussions.posts.store');
+            Route::get('/discussion-posts/{post}/file', [\App\Http\Controllers\LecturerLmsController::class, 'downloadDiscussionPostFile'])->name('discussions.posts.file');
+            Route::get('/grades', [\App\Http\Controllers\LecturerLmsController::class, 'grades'])->name('grades');
+            Route::get('/grades/{enrolment}', [\App\Http\Controllers\LecturerLmsController::class, 'showGrade'])->name('grades.show');
+            Route::put('/grades/{enrolment}', [\App\Http\Controllers\LecturerLmsController::class, 'updateGrade'])->name('grades.update');
+            Route::delete('/grades/{enrolment}', [\App\Http\Controllers\LecturerLmsController::class, 'destroyGrade'])->name('grades.destroy');
             Route::get('/analytics', [\App\Http\Controllers\LecturerLmsController::class, 'analytics'])->name('analytics');
         });
     });
@@ -132,6 +169,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/courses/register', [\App\Http\Controllers\StudentPortalController::class, 'registerCourse'])->name('courses.register');
         Route::delete('/courses/{offering}', [\App\Http\Controllers\StudentPortalController::class, 'dropCourse'])->name('courses.drop');
         Route::get('/exam-results', [\App\Http\Controllers\StudentPortalController::class, 'examResults'])->name('exam-results');
+        Route::get('/fees', [\App\Http\Controllers\StudentFeePaymentController::class, 'fees'])->name('fees');
+        Route::post('/fees', [\App\Http\Controllers\StudentFeePaymentController::class, 'storePayment'])->name('fees.store');
+        Route::get('/fees/payments/{payment}/receipt', [\App\Http\Controllers\StudentFeePaymentController::class, 'previewReceipt'])->name('fees.receipt');
         Route::get('/evaluations', [\App\Http\Controllers\StudentPortalController::class, 'evaluations'])->name('evaluations');
         Route::get('/evaluations/{offering}', [\App\Http\Controllers\StudentPortalController::class, 'showEvaluation'])->name('evaluations.show');
         Route::post('/evaluations/{offering}', [\App\Http\Controllers\StudentPortalController::class, 'submitEvaluation'])->name('evaluations.submit');
@@ -142,19 +182,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('lms/{offering}')->name('lms.')->group(function () {
             Route::get('/', [\App\Http\Controllers\StudentLmsController::class, 'show'])->name('show');
             Route::get('/content', [\App\Http\Controllers\StudentLmsController::class, 'content'])->name('content');
+            Route::get('/modules/{module}', [\App\Http\Controllers\StudentLmsController::class, 'showModule'])->name('modules.show');
             Route::get('/assignments', [\App\Http\Controllers\StudentLmsController::class, 'assignments'])->name('assignments');
             Route::get('/assignments/{assignment}', [\App\Http\Controllers\StudentLmsController::class, 'showAssignment'])->name('assignments.show');
+            Route::get('/assignments/{assignment}/attachment', [\App\Http\Controllers\StudentLmsController::class, 'downloadAssignmentAttachment'])->name('assignments.attachment');
             Route::post('/assignments/{assignment}/submit', [\App\Http\Controllers\StudentLmsController::class, 'submitAssignment'])->name('assignments.submit');
+            Route::get('/submissions/{submission}/file', [\App\Http\Controllers\StudentLmsController::class, 'downloadSubmissionFile'])->name('submissions.file');
+            Route::get('/submissions/{submission}/preview', [\App\Http\Controllers\StudentLmsController::class, 'previewSubmissionFile'])->name('submissions.preview');
             Route::get('/submissions/{submission}/marked', [\App\Http\Controllers\StudentLmsController::class, 'downloadMarkedSubmission'])->name('submissions.marked');
             Route::get('/discussions', [\App\Http\Controllers\StudentLmsController::class, 'discussions'])->name('discussions');
             Route::post('/discussions', [\App\Http\Controllers\StudentLmsController::class, 'storeDiscussion'])->name('discussions.store');
             Route::get('/discussions/{discussion}', [\App\Http\Controllers\StudentLmsController::class, 'showDiscussion'])->name('discussions.show');
+            Route::put('/discussions/{discussion}', [\App\Http\Controllers\StudentLmsController::class, 'updateDiscussion'])->name('discussions.update');
+            Route::delete('/discussions/{discussion}', [\App\Http\Controllers\StudentLmsController::class, 'destroyDiscussion'])->name('discussions.destroy');
+            Route::post('/discussions/{discussion}/close', [\App\Http\Controllers\StudentLmsController::class, 'closeDiscussion'])->name('discussions.close');
             Route::post('/discussions/{discussion}/posts', [\App\Http\Controllers\StudentLmsController::class, 'storeDiscussionPost'])->name('discussions.posts.store');
+            Route::get('/discussion-posts/{post}/file', [\App\Http\Controllers\StudentLmsController::class, 'downloadDiscussionPostFile'])->name('discussions.posts.file');
+            Route::get('/grades', [\App\Http\Controllers\StudentLmsController::class, 'grades'])->name('grades');
             Route::get('/materials/{material}/download', [\App\Http\Controllers\StudentLmsController::class, 'downloadMaterial'])->name('materials.download');
         });
     });
 
     Route::get('students/{student}/courses', [StudentManagementController::class, 'courses'])->name('students.courses');
+    Route::post('students/{student}/fee-payments/{payment}/approve', [\App\Http\Controllers\StudentFeePaymentController::class, 'approve'])->name('students.fee-payments.approve');
+    Route::post('students/{student}/fee-payments/{payment}/reject', [\App\Http\Controllers\StudentFeePaymentController::class, 'reject'])->name('students.fee-payments.reject');
+    Route::get('students/{student}/fee-payments/{payment}/receipt', [\App\Http\Controllers\StudentFeePaymentController::class, 'adminPreviewReceipt'])->name('students.fee-payments.receipt');
+    Route::get('fee-payments', [\App\Http\Controllers\InstitutionFeePaymentsController::class, 'index'])->name('fee-payments.index');
+
+    Route::middleware('can:viewAny,App\Models\User')->group(function () {
+        Route::resource('users', \App\Http\Controllers\UserManagementController::class)->except(['show']);
+        Route::resource('roles', \App\Http\Controllers\RoleManagementController::class)->except(['show']);
+    });
+
     Route::resource('students', StudentManagementController::class);
 
     Route::get('assessments/institution', [AssessmentController::class, 'institutionIndex'])->name('assessments.institution.index');
@@ -181,7 +240,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
+    Route::delete('/profile/photo', [ProfilePhotoController::class, 'destroy'])->name('profile.photo.destroy');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::middleware('role:applicant')->prefix('applicant')->name('applicant.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\ApplicantPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\ApplicantPortalController::class, 'profile'])->name('profile');
+        Route::get('/apply/{slug}', [\App\Http\Controllers\ApplicantPortalController::class, 'createApplication'])->name('apply.create');
+        Route::post('/apply/{slug}', [\App\Http\Controllers\ApplicantPortalController::class, 'storeApplication'])->name('apply.store');
+        Route::get('/applications/{application}', [\App\Http\Controllers\ApplicantPortalController::class, 'showApplication'])->name('applications.show');
+        Route::get('/applications/{application}/edit', [\App\Http\Controllers\ApplicantPortalController::class, 'editApplication'])->name('applications.edit');
+        Route::put('/applications/{application}', [\App\Http\Controllers\ApplicantPortalController::class, 'updateApplication'])->name('applications.update');
+        Route::delete('/applications/{application}/documents/{field}', [\App\Http\Controllers\ApplicantPortalController::class, 'removeDocument'])->name('applications.documents.remove');
+        Route::get('/applications/{application}/files/{field}', [\App\Http\Controllers\ApplicantPortalController::class, 'downloadFile'])->name('applications.file');
+        Route::get('/applications/{application}/files/{field}/preview', [\App\Http\Controllers\ApplicantPortalController::class, 'previewFile'])->name('applications.file.preview');
+    });
+
+    Route::middleware('can:application.manage')->prefix('applications')->name('applications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ProgrammeApplicationController::class, 'index'])->name('index');
+        Route::get('/{application}', [\App\Http\Controllers\ProgrammeApplicationController::class, 'show'])->name('show');
+        Route::put('/{application}/status', [\App\Http\Controllers\ProgrammeApplicationController::class, 'updateStatus'])->name('status');
+        Route::post('/{application}/verify-payment', [\App\Http\Controllers\ProgrammeApplicationController::class, 'verifyPayment'])->name('verify-payment');
+        Route::post('/{application}/enroll', [\App\Http\Controllers\ProgrammeApplicationController::class, 'enroll'])->name('enroll');
+        Route::get('/{application}/files/{field}', [\App\Http\Controllers\ProgrammeApplicationController::class, 'downloadFile'])->name('file');
+        Route::get('/{application}/files/{field}/preview', [\App\Http\Controllers\ProgrammeApplicationController::class, 'previewFile'])->name('file.preview');
+    });
 });
 
 require __DIR__.'/auth.php';

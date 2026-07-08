@@ -14,13 +14,27 @@ class LmsDiscussion extends Model
         'title',
         'body',
         'is_pinned',
+        'is_closed',
+        'closed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'is_pinned' => 'boolean',
+            'is_closed' => 'boolean',
+            'closed_at' => 'datetime',
         ];
+    }
+
+    public function isOpen(): bool
+    {
+        return ! $this->is_closed;
+    }
+
+    public function isCreator(?User $user): bool
+    {
+        return $user !== null && $this->created_by === $user->id;
     }
 
     public function courseOffering(): BelongsTo

@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ config('app.name', 'HEQAMIS') }} — Self-Assessment Platform</title>
+        <title>{{ config('app.full_name') }}</title>
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,11 +13,11 @@
             <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
                 <a href="{{ route('welcome') }}" class="flex items-center gap-3">
                     @if (file_exists(public_path('images/logo.png')))
-                        <img src="{{ asset('images/logo.png') }}" alt="HEQAMIS" class="h-12 w-auto object-contain">
+                        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.short_name') }}" class="h-12 w-auto object-contain">
                     @else
-                        <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-heqamis-green text-sm font-bold text-heqamis-blue">H</span>
+                        <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-heqamis-green text-sm font-bold text-heqamis-blue">E</span>
                     @endif
-                    <span class="text-xl font-bold tracking-wide">HEQAMIS</span>
+                    <span class="text-xl font-bold tracking-wide">{{ config('app.short_name') }}</span>
                 </a>
 
                 <nav class="flex items-center gap-3">
@@ -29,9 +29,9 @@
                         <a href="{{ route('login') }}" class="rounded-lg border border-white/30 px-5 py-2 text-sm font-medium hover:bg-white/10 transition">
                             Log in
                         </a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="rounded-lg bg-heqamis-green px-5 py-2 text-sm font-semibold text-heqamis-blue hover:bg-heqamis-green-dark transition">
-                                Register
+                        @if (Route::has('register.guest'))
+                            <a href="{{ route('register.guest') }}" class="rounded-lg bg-heqamis-green px-5 py-2 text-sm font-semibold text-heqamis-blue hover:bg-heqamis-green-dark transition">
+                                Guest institution
                             </a>
                         @endif
                     @endauth
@@ -47,12 +47,11 @@
                             NCHE Accreditation Support
                         </p>
                         <h1 class="text-4xl font-bold leading-tight lg:text-5xl">
-                            Welcome to HEQAMIS Self-Assessment
+                            Welcome to {{ config('app.short_name') }}
                         </h1>
                         <p class="mt-6 text-lg text-white/85 leading-relaxed">
-                            Higher Education Quality Assessment Management Information System (HEQAMIS) helps institutions and programmes
-                            conduct institutional and programme self-assessments against NCHE standards, track compliance,
-                            manage evidence, and generate Self-Assessment Reports and annual reports.
+                            {{ config('app.full_name') }} helps institutions and programmes conduct institutional and programme
+                            self-assessments against NCHE standards, track compliance, manage evidence, and generate reports.
                         </p>
                         <ul class="mt-8 space-y-3 text-white/80">
                             <li class="flex items-start gap-3">
@@ -72,11 +71,11 @@
                         @guest
                             <div class="mt-10 flex flex-wrap gap-4">
                                 <a href="{{ route('login') }}" class="rounded-lg bg-heqamis-green px-8 py-3 text-base font-semibold text-heqamis-blue shadow-lg hover:bg-heqamis-green-dark transition">
-                                    Get started — Log in
+                                    Log in
                                 </a>
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" class="rounded-lg border border-heqamis-green px-8 py-3 text-base font-semibold text-heqamis-green hover:bg-heqamis-green/10 transition">
-                                        Register your institution
+                                @if (Route::has('register.guest'))
+                                    <a href="{{ route('register.guest') }}" class="rounded-lg border border-heqamis-green px-8 py-3 text-base font-semibold text-heqamis-green hover:bg-heqamis-green/10 transition">
+                                        Register as guest institution
                                     </a>
                                 @endif
                             </div>
@@ -86,7 +85,7 @@
                     <div class="relative">
                         <div class="rounded-2xl border border-heqamis-blue-light bg-heqamis-blue-light/40 p-8 shadow-2xl backdrop-blur-sm">
                             <div class="mb-6 flex items-center gap-3">
-                                <span class="flex h-14 w-14 items-center justify-center rounded-xl bg-heqamis-green text-2xl font-bold text-heqamis-blue">H</span>
+                                <span class="flex h-14 w-14 items-center justify-center rounded-xl bg-heqamis-green text-2xl font-bold text-heqamis-blue">E</span>
                                 <div>
                                     <p class="text-sm uppercase tracking-wider text-heqamis-green">Platform</p>
                                     <p class="text-xl font-semibold">Self-Assessment Workflow</p>

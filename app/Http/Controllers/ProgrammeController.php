@@ -39,6 +39,7 @@ class ProgrammeController extends Controller
             $request->input('department'),
             (int) auth()->user()->institution_id
         );
+        $validated['applications_open'] = $request->boolean('applications_open');
 
         Programme::create($validated);
 
@@ -72,6 +73,7 @@ class ProgrammeController extends Controller
             $request->input('department'),
             (int) $programme->institution_id
         );
+        $validated['applications_open'] = $request->boolean('applications_open');
 
         $programme->update($validated);
 
@@ -98,6 +100,18 @@ class ProgrammeController extends Controller
             'department' => 'nullable|string|max:255',
             'level' => 'required|string',
             'delivery_modes' => 'nullable|array',
+            'total_credit_hours' => 'nullable|numeric|min:0|max:9999',
+            'duration' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:5000',
+            'tuition_fee' => 'nullable|numeric|min:0',
+            'application_fee' => 'nullable|numeric|min:0',
+            'registration_fee' => 'nullable|numeric|min:0',
+            'other_fees' => 'nullable|numeric|min:0',
+            'entry_requirements' => 'nullable|string|max:10000',
+            'required_grades' => 'nullable|string|max:5000',
+            'max_intake' => 'nullable|integer|min:1|max:9999',
+            'application_closing_date' => 'nullable|date',
+            'applications_open' => 'boolean',
             'nche_accreditation_status' => 'nullable|string',
             'professional_body' => 'nullable|string|max:255',
             'curriculum_developed_at' => 'nullable|date',

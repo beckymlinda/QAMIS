@@ -7,6 +7,7 @@ use App\Models\Concerns\BelongsToInstitution;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Student extends Model
 {
@@ -40,6 +41,16 @@ class Student extends Model
     public function teachingEvaluations(): HasMany
     {
         return $this->hasMany(TeachingEvaluation::class);
+    }
+
+    public function feePayments(): HasMany
+    {
+        return $this->hasMany(StudentFeePayment::class);
+    }
+
+    public function programmeApplication(): HasOne
+    {
+        return $this->hasOne(ProgrammeApplication::class, 'enrolled_student_id');
     }
 
     public function fullName(): string

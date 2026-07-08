@@ -167,13 +167,36 @@ class StudentManagementController extends Controller
             ->with('success', 'Student registered with portal login access.');
     }
 
-    public function show(Student $student): View
+    public function show(Request $request, Student $student): View
     {
         $this->authorize('view', $student);
 
-        $student->load(['programme', 'institution', 'user']);
+        $student->load(['programme', 'institution', 'user', 'programmeApplication', 'feePayments.reviewer']);
 
-        return view('students.show', compact('student'));
+        $tab = $request->query('tab', 'personal');
+        if (! in_array($tab, ['personal', 'grades', 'fees'], true)) {
+            $tab = 'personal';
+        }
+
+        $portalService = app(\App\Services\StudentPortalService::class);
+        $feesService = app(\App\Services\StudentFeesService::class);
+
+        $periods = $portalService->availableResultPeriods($student);
+        $academicYear = $request->query('academic_year', $periods->first()['academic_year'] ?? null);
+        $semester = $request->query('semester', $periods->first()['semester'] ?? null);
+
+        $results = ($academicYear && $semester)
+            ? $portalService->publishedResults($student, $academicYear, (int) $semester)
+            : collect();
+
+        $semesterGpa = $portalService->semesterGpa($results);
+        $cumulativeGpa = $portalService->cumulativeGpa($student);
+        $feeSummary = $feesService->summary($student);
+
+        return view('students.show', compact(
+            'student', 'tab', 'periods', 'academicYear', 'semester',
+            'results', 'semesterGpa', 'cumulativeGpa', 'feeSummary'
+        ));
     }
 
     public function edit(Student $student): View

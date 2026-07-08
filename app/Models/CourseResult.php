@@ -10,6 +10,7 @@ class CourseResult extends Model
     protected $fillable = [
         'student_course_enrolment_id',
         'coursework_percentage', 'exam_percentage', 'final_percentage',
+        'use_final_override', 'final_percentage_override',
         'letter_grade', 'grade_points', 'quality_label', 'academic_decision',
         'is_published', 'graded_by_staff_member_id', 'graded_at', 'published_at',
     ];
@@ -20,6 +21,8 @@ class CourseResult extends Model
             'coursework_percentage' => 'decimal:2',
             'exam_percentage' => 'decimal:2',
             'final_percentage' => 'decimal:2',
+            'final_percentage_override' => 'decimal:2',
+            'use_final_override' => 'boolean',
             'grade_points' => 'decimal:2',
             'is_published' => 'boolean',
             'graded_at' => 'datetime',

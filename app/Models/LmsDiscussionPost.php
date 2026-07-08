@@ -13,7 +13,14 @@ class LmsDiscussionPost extends Model
         'user_id',
         'parent_id',
         'body',
+        'file_path',
+        'file_name',
     ];
+
+    public function hasAttachment(): bool
+    {
+        return filled($this->file_path);
+    }
 
     public function discussion(): BelongsTo
     {

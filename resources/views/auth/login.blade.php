@@ -1,7 +1,7 @@
 <x-guest-layout>
     <x-slot name="title">Log in</x-slot>
     <x-slot name="heading">Welcome back</x-slot>
-    <x-slot name="subheading">Sign in to continue your self-assessment work.</x-slot>
+    <x-slot name="subheading">Sign in to {{ config('app.short_name') }}.</x-slot>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -43,10 +43,10 @@
         </div>
     </form>
 
-    @if (Route::has('register'))
+    @if (Route::has('register.guest'))
         <p class="mt-6 text-center text-sm text-gray-600">
-            Need an institution account?
-            <a href="{{ route('register') }}" class="font-medium text-heqamis-blue hover:text-heqamis-green underline">Register</a>
+            Need a demo workspace?
+            <a href="{{ route('register.guest') }}" class="font-medium text-heqamis-blue hover:text-heqamis-green underline">Register as guest institution</a>
         </p>
     @endif
 </x-guest-layout>

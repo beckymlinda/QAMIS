@@ -1,6 +1,9 @@
 @if (session('success'))
     <div class="mb-4 bg-green-100 text-green-800 p-4 rounded-lg">{{ session('success') }}</div>
 @endif
+@if (session('info'))
+    <div class="mb-4 rounded-lg bg-blue-50 p-4 text-blue-900 ring-1 ring-blue-200">{{ session('info') }}</div>
+@endif
 @if (session('error'))
     <div class="mb-4 bg-red-100 text-red-800 p-4 rounded-lg">{{ session('error') }}</div>
 @endif

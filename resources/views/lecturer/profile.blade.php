@@ -6,6 +6,14 @@
         </div>
     </x-slot>
     <div class="py-6 max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        @include('partials.alerts')
+
+        <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+            <div class="max-w-xl">
+                @include('profile.partials.update-profile-photo-form', ['user' => auth()->user()])
+            </div>
+        </div>
+
         <div class="bg-white rounded-lg shadow p-6 text-sm space-y-3">
             <div class="grid sm:grid-cols-2 gap-4">
                 <div><p class="text-gray-500">Name</p><p class="font-medium">{{ $staff->name }}</p></div>
