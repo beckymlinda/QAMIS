@@ -29,9 +29,9 @@
                         <a href="{{ route('login') }}" class="rounded-lg border border-white/30 px-5 py-2 text-sm font-medium hover:bg-white/10 transition">
                             Log in
                         </a>
-                        @if (Route::has('register.guest'))
-                            <a href="{{ route('register.guest') }}" class="rounded-lg bg-heqamis-green px-5 py-2 text-sm font-semibold text-heqamis-blue hover:bg-heqamis-green-dark transition">
-                                Guest institution
+                        @if (Route::has('register'))
+                            <a href="{{ route('register') }}" class="rounded-lg bg-heqamis-green px-5 py-2 text-sm font-semibold text-heqamis-blue hover:bg-heqamis-green-dark transition">
+                                Register
                             </a>
                         @endif
                     @endauth
@@ -71,11 +71,11 @@
                         @guest
                             <div class="mt-10 flex flex-wrap gap-4">
                                 <a href="{{ route('login') }}" class="rounded-lg bg-heqamis-green px-8 py-3 text-base font-semibold text-heqamis-blue shadow-lg hover:bg-heqamis-green-dark transition">
-                                    Log in
+                                    Get started — Log in
                                 </a>
-                                @if (Route::has('register.guest'))
-                                    <a href="{{ route('register.guest') }}" class="rounded-lg border border-heqamis-green px-8 py-3 text-base font-semibold text-heqamis-green hover:bg-heqamis-green/10 transition">
-                                        Register as guest institution
+                                @if (Route::has('register'))
+                                    <a href="{{ route('register') }}" class="rounded-lg border border-heqamis-green px-8 py-3 text-base font-semibold text-heqamis-green hover:bg-heqamis-green/10 transition">
+                                        Register your institution
                                     </a>
                                 @endif
                             </div>

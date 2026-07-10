@@ -22,7 +22,6 @@ class PermissionCatalog
         'council_board',
         'external_evaluator',
         'lecturer',
-        'guest_institution',
         'student',
         'applicant',
     ];
@@ -93,7 +92,6 @@ class PermissionCatalog
             'council_board' => 'Council / board member',
             'external_evaluator' => 'External evaluator',
             'lecturer' => 'Lecturer',
-            'guest_institution' => 'Guest institution (demo)',
             'student' => 'Student',
             'applicant' => 'Applicant',
         ];

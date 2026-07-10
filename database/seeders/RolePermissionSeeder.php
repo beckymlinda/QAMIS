@@ -51,11 +51,6 @@ class RolePermissionSeeder extends Seeder
             'student' => ['student.portal', 'lms.view'],
             'applicant' => [],
             'lecturer' => ['dashboard.view', 'evaluation.view_reports', 'grade.manage', 'lms.manage'],
-            'guest_institution' => [
-                'dashboard.view', 'institution.manage', 'programme.manage',
-                'assessment.create', 'assessment.score', 'evidence.upload',
-                'report.generate', 'report.view',
-            ],
         ];
 
         foreach ($roles as $roleName => $rolePermissions) {

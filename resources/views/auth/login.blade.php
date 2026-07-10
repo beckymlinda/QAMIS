@@ -43,10 +43,10 @@
         </div>
     </form>
 
-    @if (Route::has('register.guest'))
+    @if (Route::has('register'))
         <p class="mt-6 text-center text-sm text-gray-600">
-            Need a demo workspace?
-            <a href="{{ route('register.guest') }}" class="font-medium text-heqamis-blue hover:text-heqamis-green underline">Register as guest institution</a>
+            Need an institution account?
+            <a href="{{ route('register') }}" class="font-medium text-heqamis-blue hover:text-heqamis-green underline">Register</a>
         </p>
     @endif
 </x-guest-layout>

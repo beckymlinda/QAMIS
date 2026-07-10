@@ -31,8 +31,6 @@
             <span class="hidden text-sm font-medium text-[#0f2744] sm:inline">
                 @role('student')
                     Student Portal
-                @elseif(auth()->user()->hasRole('guest_institution'))
-                    {{ config('app.short_name') }} — Guest demo
                 @else
                     {{ config('app.short_name') }} Administration
                 @endrole

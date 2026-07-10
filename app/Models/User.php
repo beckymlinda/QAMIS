@@ -60,11 +60,6 @@ class User extends Authenticatable
         return $this->hasRole('applicant');
     }
 
-    public function isGuestInstitution(): bool
-    {
-        return $this->hasRole('guest_institution');
-    }
-
     public function homeRoute(): string
     {
         if ($this->isApplicant()) {
